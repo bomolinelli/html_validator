@@ -10,6 +10,31 @@ def validate_html(html):
     >>> validate_html('<strong>example')
     False
     '''
+    try:
+        tags = _extract_tags(html)
+    except ValueError:
+        return False
+
+    stack = []
+
+    for tag in tags:
+
+        if not tag.startswith('</'):
+            tag_name = tag[1:-1].split()[0]
+            stack.append(tag_name)
+
+        else:
+            tag_name = tag[2:-1].split()[0]
+
+            if len(stack) == 0:
+                return False
+
+            if stack[-1] == tag_name:
+                stack.pop()
+            else:
+                return False
+
+    return len(stack) == 0
 
     # HINT:
     # use the _extract_tags function below to generate a list of html tags without any extra text;
@@ -29,3 +54,31 @@ def _extract_tags(html):
     >>> _extract_tags('Python <strong>rocks</strong>!')
     ['<strong>', '</strong>']
     '''
+    tags = []
+    current_tag = ''
+    inside_tag = False
+
+    for char in html:
+
+        if char == '<':
+
+            if inside_tag:
+                raise ValueError('found < without matching >')
+
+            inside_tag = True
+            current_tag = '<'
+
+        elif char == '>' and inside_tag:
+            current_tag += '>'
+            tags.append(current_tag)
+
+            current_tag = ''
+            inside_tag = False
+
+        elif inside_tag:
+            current_tag += char
+
+    if inside_tag:
+        raise ValueError('found < without matching >')
+
+    return tags
